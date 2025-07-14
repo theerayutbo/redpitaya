@@ -1,181 +1,128 @@
-# Red Pitaya STEM 125-14: Signal Generation, DMA Data Acquisition, and Impedance Analysis with FFT
+# Red Pitaya Impedance Analyzer GUI
 
-This project demonstrates how to use the Red Pitaya STEM 125-14 to perform the following tasks:
-- Generate sine wave signals with configurable frequency and amplitude.
-- Acquire data from two channels using Direct Memory Acquisition (DMA).
-- Perform Fast Fourier Transform (FFT) on the acquired signals.
-- Calculate impedance, including its magnitude, phase, real, and imaginary components.
-- Average results over multiple acquisition runs.
-- Visualize the acquired signals and impedance measurements through plots.
-- Save the calculated average impedance and other parameters to a text file.
+This project provides a comprehensive graphical user interface (GUI) for performing impedance analysis using the Red Pitaya STEM 125-14. The system is designed for material characterization, allowing users to measure, calibrate, compare, and analyze impedance data across a range of frequencies.
 
-The primary script, `DeepMemoryAcquisitionWithFFT3.py`, handles the interaction with the Red Pitaya device, data processing, and result presentation.
+The main application is `ImpledanceAnalysor.py`, which provides a feature-rich interface for complex measurement workflows, including Eigenvalue Analysis for MPT (Magnetic Particle Testing).
+
+![Impedance Analyser GUI](https://i.imgur.com/your-image-url.png)  <!-- Placeholder: Replace with an actual screenshot URL -->
+
+## Core Components
+
+- **`ImpledanceAnalysor.py`**: The main graphical user interface built with `customtkinter`. It serves as the central control panel for all measurement and analysis tasks.
+- **`Background.py`**: A class-based module that encapsulates the core logic for interacting with the Red Pitaya. It handles signal generation, data acquisition (DMA), FFT calculation, and impedance measurement. This module is used by the GUI to perform measurements in a separate thread.
+- **`rp_scpi.py`**: A library for communicating with the Red Pitaya using SCPI (Standard Commands for Programmable Instruments) commands over a network socket.
+- **`DeepMemoryAcquisitionWithFFT3.py`**: A standalone script for simple waveform generation and data acquisition. It's primarily for demonstration and understanding the basic principles of interacting with the Red Pitaya.
 
 ## Features
 
-- **Signal Generation:** Generates sine waves with user-defined frequency and amplitude using the Red Pitaya.
-- **Dual-Channel Data Acquisition:** Acquires data simultaneously from two channels of the Red Pitaya.
-- **Direct Memory Acquisition (DMA):** Utilizes DMA for high-speed data transfer from the Red Pitaya.
-- **FFT Analysis:** Performs Fast Fourier Transform on the acquired time-domain signals to analyze frequency components.
-- **Impedance Calculation:** Calculates complex impedance, including:
-    - Magnitude
-    - Phase (in degrees)
-    - Real part
-    - Imaginary part
-- **Averaging:** Averages measurements over multiple runs to improve accuracy.
-- **Data Visualization:** Generates plots for:
-    - Voltage signals over time for each run.
-    - Current signals over time for each run.
-    - Impedance magnitude and phase per run.
-    - Real and imaginary parts of impedance per run.
-- **Results Logging:** Saves key results (frequency, average voltage, average current, average impedance) to a text file.
-- **Configurable Parameters:** Allows configuration of parameters such as Red Pitaya IP address, signal frequency, amplitude, decimation factor, and number of averaging runs.
+The `ImpedanceAnalysor.py` GUI provides four main tabs:
+
+### 🔴 Live Measurement
+- **Sweep Measurement:** Perform frequency sweeps by specifying start frequency, end frequency, and number of points.
+- **Configurable Parameters:** Set the number of averages per point for improved accuracy.
+- **Measurement Types:**
+    - **Metal:** For measuring metal samples. Requires specifying metal type, sample number, and measurement direction (1-16).
+    - **Background (Air):** For measuring the baseline impedance in air.
+    - **Calibration (Ferrite):** For measuring a ferrite core for calibration purposes.
+- **Real-time Plotting:** View the real and imaginary parts of the impedance as they are being measured.
+- **Automated Data Storage:** Results are automatically saved in a structured folder hierarchy under `Measurement_Data/`.
+
+### 📊 Compare Results
+- **Load and Compare:** Load multiple `summary_results.csv` files from different measurements (or entire folders) to overlay their impedance plots.
+- **Filtering:** Filter the displayed data by metal type and measurement direction.
+- **Plot Types:** Choose to display Real parts, Imaginary parts, or both on the comparison graph.
+
+### 🔬 Calculation
+- **Calibrated Measurement:** Automatically finds the relevant background and ferrite measurements to calculate the calibrated impedance of a metal sample.
+- **Formula:** `Z_calibrated = (Z_metal - Z_background_metal) / (Z_ferrite - Z_background_ferrite)`
+- **Visualization:** Plot the calibrated impedance.
+- **Save Results:** Save the calculated calibrated data to a new `_CALIBRATED.csv` file, either in the source directory or a new location.
+
+### 🧬 Eigenvalue Analysis
+- **MPT Data Processing:** Designed for Magnetic Particle Testing (MPT) analysis.
+- **Load Data:** Load multiple `_CALIBRATED.csv` files for a specific sample (requires at least 6 directions).
+- **Eigenvalue Calculation:** Calculates the three principal eigenvalues (E1, E2, E3) of the impedance tensor.
+- **Visualization:** Plot the real and imaginary parts of the eigenvalues against frequency.
+- **Save Eigenvalues:** Export the calculated eigenvalue data to a `_Eigenvalues.csv` file.
 
 ## Hardware Requirements
 
-- **Red Pitaya STEM 125-14:** This project is specifically designed for this Software Defined Radio (SDR) and data acquisition platform.
-- **Computer:** A computer to run the Python script and connect to the Red Pitaya over a network.
-- **Network Connection:** An Ethernet connection between the Red Pitaya and the computer.
+- **Red Pitaya STEM 125-14**
+- A computer to run the Python GUI.
+- An Ethernet connection between the Red Pitaya and the computer.
 
 ## Software Requirements
 
-- **Python 3.x:** The script is written for Python 3.
-- **Python Libraries:**
-    - `numpy`
-    - `scipy`
-    - `matplotlib`
-    - `rp-scpi` (The Red Pitaya SCPI library for Python)
-- **Operating System:** A compatible operating system (e.g., Linux, macOS, Windows) that can run Python and connect to the Red Pitaya.
+- **Python 3.x**
+- **Python Libraries:** See the `requirements.txt` file.
 
-You can install the required Python libraries using pip. It's recommended to use a virtual environment.
+You can install the required Python libraries using pip. It's highly recommended to use a virtual environment.
 
-1.  **Create `requirements.txt`:**
-    A `requirements.txt` file is included in this repository for easy installation of dependencies.
+```bash
+# Create and activate a virtual environment (optional but recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-    If the `rp-scpi` library is not available via pip or if you need a specific version, you might need to install it directly from its source or follow instructions provided by Red Pitaya. The script uses `rp_scpi.py`, so ensure this module is accessible in your Python environment.
+# Install dependencies
+pip install -r requirements.txt
+```
 
 ## How to Use
 
-1.  **Ensure Prerequisites:**
-    *   Verify that all hardware is connected correctly (Red Pitaya to network, computer to network).
-    *   Make sure all software requirements are met and libraries are installed (see "Software Requirements" section).
+1.  **Prerequisites:**
+    *   Ensure all hardware is connected correctly.
+    *   Make sure all software requirements are met and libraries are installed.
+    *   Connect your test probe/sensor to the Red Pitaya's inputs and outputs.
 
-2.  **Configure Script Parameters:**
-    Open the `DeepMemoryAcquisitionWithFFT3.py` script and modify the following parameters at the beginning of the file if needed:
-    *   `IP`: Set this to the IP address or hostname of your Red Pitaya device (e.g., `'rp-f05577.local'` or `'192.168.1.100'`).
-    *   `wave_form`: The type of waveform to generate (default is `'sine'`).
-    *   `freq`: The frequency of the generated sine wave in Hz (e.g., `500`).
-    *   `ampl`: The amplitude of the generated sine wave in Volts (e.g., `0.5`).
-    *   `average`: The number of times the measurement will be repeated and averaged (e.g., `3`).
-    *   `DATA_SIZE`: The size of the acquisition buffer in samples.
-    *   `READ_DATA_SIZE`: The number of samples to read from the buffer.
-    *   `dec`: The decimation factor. The final sampling rate will be 125 MHz / `dec`.
-    *   `trig_lvl`: The trigger level in Volts.
-
-3.  **Run the Script:**
-    Execute the Python script from your terminal:
+2.  **Run the Application:**
+    The primary way to use this project is by running the main GUI application.
     ```bash
-    python DeepMemoryAcquisitionWithFFT3.py
+    python ImpledanceAnalysor.py
     ```
 
-4.  **Observe Output:**
-    *   The script will print status messages to the console, including connection status, signal generation details, trigger events, acquired data information, and calculated impedance values for each run and the final averaged values.
-    *   **Plots:** Matplotlib windows will appear displaying:
-        *   Voltage vs. Time for each acquisition run.
-        *   Current vs. Time for each acquisition run.
-        *   Impedance Magnitude and Phase for each run, along with the average.
-        *   Real and Imaginary parts of Impedance for each run.
-    *   **Results File:** A text file will be created in a directory named `DeepMemoryAcquisitionWithFFT_results`. The filename will be based on the decimation factor and number of averages (e.g., `error_dec625_avg3.txt`). This file contains:
-        *   Frequency (Hz)
-        *   Average Voltage (V)
-        *   Average Current (A)
-        *   Average Impedance (ohm)
+3.  **Perform a Measurement (Example Workflow):**
+    a.  Navigate to the **🔴 Live Measurement** tab.
+    b.  Select the measurement type (e.g., "Metal").
+    c.  If measuring a metal, fill in the "Metal Type", "Sample Number", and "Direction".
+    d.  Set the sweep parameters (e.g., Freq Start: 100 Hz, Freq End: 100000 Hz, Points: 30).
+    e.  Click **▶️ Start Measurement**.
+    f.  A dialog will show where the data will be saved. The GUI will plot the results in real-time.
+    g.  Repeat the process for background and calibration measurements as needed.
 
-5.  **Troubleshooting:**
-    *   **Connection Issues:** Ensure the Red Pitaya is powered on, connected to the network, and the `IP` address in the script is correct. Try pinging the Red Pitaya from your computer.
-    *   **Library Errors:** Double-check that all required Python libraries are installed correctly in the environment you are using to run the script.
-    *   **SCPI Errors:** Errors from the `rp_scpi` library might indicate issues with the commands being sent to the Red Pitaya or with the device's state. Consult the Red Pitaya documentation if specific SCPI errors occur.
+4.  **Analyze the Data:**
+    a.  Go to the **🔬 Calculation** tab to calculate calibrated impedance from your raw measurements.
+    b.  Use the **📊 Compare Results** tab to compare different measurements.
+    c.  Use the **🧬 Eigenvalue Analysis** tab for advanced MPT analysis.
 
-## Script Overview
+## Data Storage Structure
 
-The `DeepMemoryAcquisitionWithFFT3.py` script performs several key operations:
+The application creates a `Measurement_Data` directory to store all results. The structure is organized as follows:
 
-1.  **Initialization and Configuration:**
-    *   Imports necessary libraries (`time`, `matplotlib.pyplot`, `numpy`, `scipy.signal`, `tkinter`, `os`, `rp_scpi`).
-    *   Sets global parameters like Red Pitaya IP, signal properties (waveform, frequency, amplitude), acquisition settings (data size, decimation), and number of averaging runs.
-    *   Establishes a connection with the Red Pitaya using the `rp_scpi` library.
-
-2.  **Signal Generation:**
-    *   Resets the Red Pitaya's signal generator.
-    *   Configures Channel 1 to output the specified waveform (e.g., sine wave) with the set frequency and amplitude.
-    *   Enables the output of Channel 1.
-
-3.  **Data Acquisition Loop (Repeated for `average` number of times):**
-    *   **Acquisition Setup:**
-        *   Resets the acquisition system.
-        *   Retrieves memory region details (start address, size).
-        *   Sets the decimation factor, data units (Volts).
-        *   Configures trigger delay for both channels.
-        *   Allocates buffer space for Channel 1 and Channel 2 in the Red Pitaya's memory.
-        *   Enables DMA for both channels.
-        *   Sets the trigger level and source (Channel 1 positive edge).
-    *   **Triggering and Data Capture:**
-        *   Starts the acquisition process.
-        *   Waits for the trigger condition to be met.
-        *   Waits for the DMA buffer to fill up.
-        *   Stops the acquisition.
-    *   **Data Retrieval:**
-        *   Gets the write pointer position at the trigger location for both channels.
-        *   Reads the acquired data (voltage samples) for Channel 1 and Channel 2 from the Red Pitaya's memory.
-        *   Converts the raw string data into lists of floats.
-
-4.  **Signal Processing (within the loop):**
-    *   **Zero-Crossing Detection:** Identifies zero crossings in the voltage signal to extract full cycles, ensuring coherent sampling for FFT.
-    *   **Impedance Calculation:**
-        *   Calculates the Fast Fourier Transform (FFT) of the (full-cycle) voltage and current signals.
-        *   Determines the complex impedance at the fundamental frequency.
-        *   Extracts impedance magnitude, phase, real part, and imaginary part.
-    *   Stores the processed voltage, current, and complex impedance for the current run.
-
-5.  **Averaging Results (after the loop):**
-    *   Calculates the average complex impedance from all runs.
-    *   Derives the average magnitude, phase, real, and imaginary parts from the average complex impedance.
-    *   Calculates simple averages for voltage and current magnitudes (note: phase information is critical for impedance, so complex averaging is used there).
-
-6.  **Plotting:**
-    *   Uses `matplotlib` to generate several plots:
-        *   Voltage waveforms for each run.
-        *   Current waveforms for each run.
-        *   Impedance magnitude and phase for each run, with average values highlighted.
-        *   Real and imaginary parts of impedance for each run.
-    *   Displays the plots.
-
-7.  **Saving Results:**
-    *   Creates a directory named `DeepMemoryAcquisitionWithFFT_results` if it doesn't exist.
-    *   Saves the configuration (frequency) and key averaged results (voltage, current, impedance) to a `.txt` file. The filename includes decimation and averaging parameters.
-
-8.  **Cleanup:**
-    *   Disables DMA on both channels of the Red Pitaya.
-    *   Closes the connection to the Red Pitaya.
+```
+Measurement_Data/
+├── background/
+│   └── 20231027-143000/
+│       ├── raw_freq_data/
+│       │   └── ... (individual frequency measurement files)
+│       └── summary_results.csv
+├── calibration/
+│   └── 20231027-143500/
+│       └── ...
+└── metal/
+    └── aluminum/
+        └── Sample_1/
+            └── Direction_5/
+                └── 20231027-144000/
+                    ├── raw_freq_data/
+                    │   └── ...
+                    ├── summary_results.csv
+                    └── aluminum_S1_D5 (14-40)_CALIBRATED.csv  (Optional, from Calculation tab)
+```
 
 ## License
 
-This project is provided under a license. Please do not use for commercial purposes.
-
-*(Note: If you intend to use a specific open-source license like MIT, GPL, Apache 2.0, etc., please replace the text above with the terms of that license or a link to it.)*
+This project is provided for academic and research purposes. Please do not use for commercial purposes without permission.
 
 ## Contributing
 
-Contributions to this project are welcome. If you have suggestions for improvements, please feel free to:
-
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix.
-3.  Make your changes.
-4.  Submit a pull request.
-
-Please ensure your code is well-commented and, if applicable, update the README.md with any relevant changes.
+Contributions are welcome. If you have suggestions for improvements, please fork the repository, create a new branch for your feature or bug fix, and submit a pull request.
